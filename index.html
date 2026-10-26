@@ -20,6 +20,8 @@
     <!-- Marked.js for rendering Markdown from Gemini -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.css"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Puter.js Cloud SDK untuk akses ChatGPT (OpenAI) & Claude (Anthropic) Tanpa API Key -->
+    <script src="https://js.puter.com/v2/"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #f3f4f6; }
@@ -377,9 +379,25 @@
                                     <div>
                                         <select id="gen-ai-model" required class="glass-input w-full px-4 py-2.5 rounded-lg text-sm font-medium text-gray-800">
                                             <option value="gemini">Google Gemini (Menggunakan API Key Pengaturan)</option>
-                                            <option value="chatgpt">ChatGPT - OpenAI (Tanpa API Key)</option>
-                                            <option value="claude">Claude AI - Anthropic (Tanpa API Key)</option>
+                                            <option value="chatgpt">ChatGPT - OpenAI (Tanpa API Key / Mode Browser)</option>
+                                            <option value="claude">Claude AI - Anthropic (Tanpa API Key / Mode Browser)</option>
                                         </select>
+                                    </div>
+                                    <!-- Info & Tombol Mode Browser Asli untuk ChatGPT / Claude -->
+                                    <div id="external-ai-helper" class="hidden p-3.5 rounded-xl bg-indigo-50/90 border border-indigo-200 space-y-2.5">
+                                        <div class="flex items-start gap-2.5">
+                                            <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5"></i>
+                                            <div class="text-xs text-indigo-900 leading-relaxed">
+                                                <strong>2 Cara Generate dengan <span id="selected-ai-label">ChatGPT / Claude</span>:</strong>
+                                                <ul class="list-disc ml-4 mt-1 space-y-0.5 text-[11px] text-indigo-800">
+                                                    <li><strong>Cara 1 (Otomatis):</strong> Klik tombol <em>"Generate RPP Sekarang"</em> di bawah (menggunakan layanan Puter Cloud AI gratis).</li>
+                                                    <li><strong>Cara 2 (Browser Asli 100% Akurat):</strong> Gunakan akun browser biasa Anda di web resmi <code>chatgpt.com</code> atau <code>claude.ai</code>, lalu tempel hasilnya ke aplikasi ini agar siap diunduh ke <strong>Word A4</strong>, <strong>Cetak Kop Surat</strong>, & <strong>Simpan Arsip</strong>.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <button type="button" onclick="openBrowserBridgeModal()" class="w-full py-2 px-3 bg-white hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-300 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-2 shadow-sm">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Mode Browser Asli (ChatGPT.com / Claude.ai)
+                                        </button>
                                     </div>
                                 </div>
 
@@ -561,6 +579,60 @@
                         <button type="submit" id="btn-confirm-delete" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition">Hapus Arsip</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal Jembatan Browser Asli (ChatGPT.com & Claude.ai) -->
+        <div id="modal-browser-ai" class="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-3xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-base">Integrasi Browser Asli (ChatGPT.com & Claude.ai)</h3>
+                            <p class="text-[11px] text-gray-600">Gunakan ChatGPT / Claude langsung di browser Anda tanpa API Key & konversi hasilnya ke Word A4 / Cetak</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeBrowserBridgeModal()" class="p-2 text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+                </div>
+
+                <div class="p-5 overflow-y-auto space-y-5 flex-1">
+                    <!-- Langkah 1 -->
+                    <div class="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-100 px-2.5 py-1 rounded-full">Langkah 1: Salin Prompt & Buka Web AI</span>
+                            <button type="button" onclick="copyGeneratedPrompt()" class="text-xs text-blue-600 hover:underline font-semibold"><i class="fa-regular fa-copy"></i> Salin Prompt Saja</button>
+                        </div>
+                        <p class="text-xs text-gray-600">Sistem telah menyusun <strong>Prompt RPP Super Detail</strong> sesuai form yang Anda isi. Klik salah satu tombol di bawah untuk menyalin prompt secara otomatis sekaligus membuka web resmi AI di tab baru:</p>
+                        <textarea id="bridge-prompt-box" readonly rows="4" class="w-full p-2.5 text-xs font-mono bg-white border border-gray-300 rounded-lg text-gray-700 focus:outline-none"></textarea>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <button type="button" onclick="launchExternalAI('chatgpt')" class="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> 1A. Salin Prompt & Buka ChatGPT.com
+                            </button>
+                            <button type="button" onclick="launchExternalAI('claude')" class="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-feather-pointed"></i> 1B. Salin Prompt & Buka Claude.ai
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-500 italic">*Setelah tab ChatGPT / Claude terbuka, tekan <strong>Ctrl+V (Tempel)</strong> di kolom chat mereka lalu tekan Enter.</p>
+                    </div>
+
+                    <!-- Langkah 2 -->
+                    <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">Langkah 2: Tempel (Paste) Hasil dari ChatGPT / Claude</span>
+                            <button type="button" onclick="pasteFromClipboardToBridge()" class="text-xs bg-white border border-blue-300 text-blue-700 px-2.5 py-1 rounded-lg hover:bg-blue-600 hover:text-white transition font-semibold">
+                                <i class="fa-solid fa-paste"></i> Tempel Otomatis dari Clipboard
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-600">Setelah ChatGPT atau Claude selesai membuat RPP, klik ikon <strong>Salin (Copy)</strong> di bawah jawaban mereka, lalu tempelkan ke kotak di bawah ini:</p>
+                        <textarea id="bridge-result-input" rows="6" class="w-full p-3 text-xs bg-white border border-blue-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-blue-400 focus:outline-none" placeholder="Tempel (Ctrl+V) hasil RPP dari ChatGPT atau Claude di sini..."></textarea>
+                        <button type="button" onclick="applyBrowserBridgeResult()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-double"></i> Terapkan Hasil ke Aplikasi (Siap Word A4, Cetak & Simpan Arsip)
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1497,119 +1569,72 @@
         }
         dplCheckboxes.forEach(cb => cb.addEventListener('change', updateDPLCounter));
 
-        // Helper untuk memanggil AI Claude & ChatGPT Tanpa API Key
-        async function generateWithoutApiKey(prompt, modelChoice) {
-            const modelParam = modelChoice === 'claude' ? 'claude-hybridspace' : 'openai';
-            const systemInstruction = modelChoice === 'claude'
-                ? 'Anda adalah Claude AI (Anthropic), seorang Ahli Kurikulum Nasional dan Pendidik Profesional Indonesia.'
-                : 'Anda adalah ChatGPT (OpenAI), seorang Ahli Kurikulum Nasional dan Pendidik Profesional Indonesia.';
+        // Tampilkan panel bantuan ketika user memilih ChatGPT atau Claude
+        const aiModelSelect = document.getElementById('gen-ai-model');
+        const externalAiHelper = document.getElementById('external-ai-helper');
+        const selectedAiLabel = document.getElementById('selected-ai-label');
 
-            // Endpoint utama bebas API Key (OpenAI-compatible)
-            try {
-                const response = await fetch('https://text.pollinations.ai/openai', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: modelParam,
-                        messages: [
-                            { role: 'system', content: systemInstruction },
-                            { role: 'user', content: prompt }
-                        ],
-                        temperature: 0.7
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.choices && data.choices.length > 0 && data.choices[0].message?.content) {
-                        return data.choices[0].message.content;
-                    }
-                }
-            } catch (e) {
-                console.warn("Primary keyless endpoint fallback:", e);
+        aiModelSelect.addEventListener('change', () => {
+            const val = aiModelSelect.value;
+            if (val === 'chatgpt' || val === 'claude') {
+                externalAiHelper.classList.remove('hidden');
+                selectedAiLabel.innerText = val === 'claude' ? 'Claude AI (Anthropic)' : 'ChatGPT (OpenAI)';
+            } else {
+                externalAiHelper.classList.add('hidden');
             }
+        });
 
-            // Fallback endpoint langsung jika trafik tinggi
-            const fallbackResponse = await fetch('https://text.pollinations.ai/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [
-                        { role: 'system', content: systemInstruction },
-                        { role: 'user', content: prompt }
-                    ],
-                    model: 'openai'
-                })
-            });
-
-            if (!fallbackResponse.ok) {
-                throw new Error(`Gagal menghubungkan ke server ${modelChoice.toUpperCase()}`);
-            }
-
-            const textResult = await fallbackResponse.text();
-            if (!textResult || textResult.trim().length === 0) {
-                throw new Error("Respons AI kosong, silakan coba kembali.");
-            }
-            return textResult;
-        }
-
-        document.getElementById('generator-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
+        // Fungsi menyusun Meta & Prompt RPP dari Form Input
+        function buildMetaAndPromptFromForm() {
             const checkedDPLs = Array.from(document.querySelectorAll('.dpl-checkbox:checked')).map(cb => cb.value);
-            if(checkedDPLs.length < 4) {
+            const mapel = document.getElementById('gen-mapel').value.trim();
+            const jenjang = document.getElementById('gen-jenjang').value;
+            const kelas = document.getElementById('gen-kelas').value.trim();
+            const fase = document.getElementById('gen-fase').value;
+            const durasi = document.getElementById('gen-durasi').value.trim();
+            const topik = document.getElementById('gen-topik').value.trim();
+            const tujuan = document.getElementById('gen-tujuan').value.trim();
+
+            if (!mapel || !jenjang || !kelas || !fase || !durasi || !topik || !tujuan) {
+                showToast("Mohon lengkapi semua kolom bertanda bintang (*) terlebih dahulu.", "error");
+                return null;
+            }
+
+            if (checkedDPLs.length < 4) {
                 dplError.classList.remove('hidden');
                 document.getElementById('dpl-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
+                showToast("Pilih minimal 4 Dimensi Profil Lulusan (DPL).", "error");
+                return null;
             }
 
-            const selectedAI = document.getElementById('gen-ai-model').value;
-            let apiKey = "";
-
-            // Khusus model Gemini tetap wajib memakai API Key dari Pengaturan (Tidak dirubah)
-            if (selectedAI === 'gemini') {
-                apiKey = await getGeminiKey();
-                if (!apiKey) { showToast("API Key belum diatur.", "error"); navigate('pengaturan'); return; }
-            }
-
-            document.getElementById('generator-empty').classList.add('hidden');
-            document.getElementById('generator-result').classList.add('hidden');
-            document.getElementById('result-actions').classList.add('hidden');
-            document.getElementById('generator-loader').classList.remove('hidden');
-            
-            const btn = document.getElementById('btn-generate');
-            const originalBtnHtml = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Merancang...';
-
-            currentGeneratedMeta = {
-                mata_pelajaran: document.getElementById('gen-mapel').value.trim(),
-                jenjang: document.getElementById('gen-jenjang').value,
-                kelas: document.getElementById('gen-kelas').value.trim(),
-                fase: document.getElementById('gen-fase').value,
+            const meta = {
+                mata_pelajaran: mapel,
+                jenjang: jenjang,
+                kelas: kelas,
+                fase: fase,
                 semester: document.getElementById('gen-semester').value || '-',
                 tahun_pelajaran: document.getElementById('gen-tahun').value.trim() || '-',
-                durasi: document.getElementById('gen-durasi').value.trim(),
+                durasi: durasi,
                 pertemuan: document.getElementById('gen-pertemuan').value,
                 model: document.getElementById('gen-model').value || '-',
                 pendekatan: document.getElementById('gen-pendekatan').value,
-                topik: document.getElementById('gen-topik').value.trim(),
-                tujuan: document.getElementById('gen-tujuan').value.trim(),
+                topik: topik,
+                tujuan: tujuan,
                 dpl: checkedDPLs
             };
 
-            // DYNAMIC PROMPT LOGIC BASED ON PENDEKATAN
             let instruksiDiferensiasiInti = "";
             let instruksiDiferensiasiMedia = "";
             let instruksiDiferensiasiLKPD = "";
 
-            if (currentGeneratedMeta.pendekatan === "Berdiferensiasi" || currentGeneratedMeta.pendekatan === "TaRL") {
+            if (meta.pendekatan === "Berdiferensiasi" || meta.pendekatan === "TaRL") {
                 instruksiDiferensiasiInti = `
 - KELOMPOK A - Kesiapan Tinggi (~25%): Uraikan aktivitas menantang, Media/Alat, Bentuk Produk, & Durasi spesifik.
 - KELOMPOK B - Kesiapan Sedang (~50%): Uraikan aktivitas menengah terpandu, Media/Alat, Bentuk Produk, & Durasi spesifik.
 - KELOMPOK C - Perlu Dukungan (~25%): Uraikan aktivitas dasar dengan bimbingan intensif, Media/Alat, Bentuk Produk, & Durasi spesifik.`;
                 instruksiDiferensiasiMedia = `Pembagian Media Berdasarkan Kelompok:\nKelompok A (Kesiapan Tinggi): [sebutkan]\nKelompok B (Kesiapan Sedang): [sebutkan]\nKelompok C (Perlu Dukungan): [sebutkan]`;
                 instruksiDiferensiasiLKPD = `Susunlah Tugas Praktik LKPD spesifik yang berbeda (Bertingkat) untuk: Tugas Kelompok A, Tugas Kelompok B, dan Tugas Kelompok C.`;
-            } else if (currentGeneratedMeta.pendekatan === "CRT") {
+            } else if (meta.pendekatan === "CRT") {
                 instruksiDiferensiasiInti = `
 - Aktivitas Kolaboratif CRT: JABARKAN SECARA EKSPLISIT integrasi Culturally Responsive Teaching (CRT). Kaitkan seluruh aktivitas dengan kearifan lokal, tradisi budaya setempat, atau masalah nyata di lingkungan siswa secara kolaboratif (Sertakan Aktivitas, Media/Alat, Bentuk Produk, dan Durasi).`;
                 instruksiDiferensiasiMedia = `Cantumkan rekomendasi "Media Berbasis Kearifan Lokal/Budaya" yang mendukung CRT.`;
@@ -1629,23 +1654,23 @@ DILARANG KERAS menggunakan format LaTeX seperti tanda dolar tunggal ($...$) atau
 JANGAN MEMBERIKAN KATA PENGANTAR. Mulai langsung dari judul Romawi I.
 
 **DATA INPUT:**
-* Mata Pelajaran: ${currentGeneratedMeta.mata_pelajaran}
-* Kelas / Fase: ${currentGeneratedMeta.kelas} / Fase ${currentGeneratedMeta.fase}
-* Jenjang: ${currentGeneratedMeta.jenjang}
-* Semester: ${currentGeneratedMeta.semester}
-* Tahun Pelajaran: ${currentGeneratedMeta.tahun_pelajaran}
-* Alokasi Waktu: ${currentGeneratedMeta.durasi}
-* Jumlah Pertemuan: ${currentGeneratedMeta.pertemuan} Pertemuan
-* Materi Pokok / Topik: ${currentGeneratedMeta.topik}
-* Model Pembelajaran: ${currentGeneratedMeta.model}
-* Pendekatan Khusus: ${currentGeneratedMeta.pendekatan}
-* Tujuan Pembelajaran: ${currentGeneratedMeta.tujuan}
-* Dimensi Profil Pelajar Pancasila: ${currentGeneratedMeta.dpl.join(', ')}
+* Mata Pelajaran: ${meta.mata_pelajaran}
+* Kelas / Fase: ${meta.kelas} / Fase ${meta.fase}
+* Jenjang: ${meta.jenjang}
+* Semester: ${meta.semester}
+* Tahun Pelajaran: ${meta.tahun_pelajaran}
+* Alokasi Waktu: ${meta.durasi}
+* Jumlah Pertemuan: ${meta.pertemuan} Pertemuan
+* Materi Pokok / Topik: ${meta.topik}
+* Model Pembelajaran: ${meta.model}
+* Pendekatan Khusus: ${meta.pendekatan}
+* Tujuan Pembelajaran: ${meta.tujuan}
+* Dimensi Profil Pelajar Pancasila: ${meta.dpl.join(', ')}
 
 **STRUKTUR WAJIB (Ikuti Plek/Persis seperti ini menggunakan Markdown dan tabel):**
 
 **I. Identitas RPM & Dimensi Profil Lulusan**
-(Sebutkan ulang Data Input di atas persis sebagai daftar poin peluru list '*'. Lalu jabarkan deskripsi pengembangan dari ke-${currentGeneratedMeta.dpl.length} Dimensi Profil Pelajar Pancasila yang dipilih).
+(Sebutkan ulang Data Input di atas persis sebagai daftar poin peluru list '*'. Lalu jabarkan deskripsi pengembangan dari ke-${meta.dpl.length} Dimensi Profil Pelajar Pancasila yang dipilih).
 
 **II. Tujuan Pembelajaran & KKTP**
 A. TUJUAN PEMBELAJARAN (Sebutkan ulang tujuan pembelajaran).
@@ -1660,13 +1685,13 @@ Peserta didik dinyatakan telah mencapai Tujuan Pembelajaran apabila kriteria cap
 (Tuliskan rangkuman materi lengkap dari bab ini. Uraikan sub-bab A, B, C, dst secara PANJANG LEBAR seolah ini adalah buku cetak siswa, berikan contoh penerapannya).
 
 **V. Langkah-Langkah Kegiatan Pembelajaran**
-(JABARKAN SETIAP PERTEMUAN dari Pertemuan 1 sampai Pertemuan ${currentGeneratedMeta.pertemuan} SECARA TERPISAH DAN PANJANG LEBAR!)
+(JABARKAN SETIAP PERTEMUAN dari Pertemuan 1 sampai Pertemuan ${meta.pertemuan} SECARA TERPISAH DAN PANJANG LEBAR!)
 Setiap pertemuan wajib berisi struktur ini:
 Pertemuan ke-[X] - Materi: [Judul Sub Materi]
 A. Kegiatan Pendahuluan (10 menit)
 (Tuliskan Prinsip, Pembukaan, dan Apersepsi/Pertanyaan Pemantik)
 B. Kegiatan Inti
-- Tabel Pemetaan Sintaks Model Pembelajaran (${currentGeneratedMeta.model}) ke Pengalaman Belajar (Buat tabel: No | Sintaks/Tahap Model | Ditempatkan pada Pengalaman Belajar).
+- Tabel Pemetaan Sintaks Model Pembelajaran (${meta.model}) ke Pengalaman Belajar (Buat tabel: No | Sintaks/Tahap Model | Ditempatkan pada Pengalaman Belajar).
 - PENGALAMAN BELAJAR 1: MEMAHAMI (Eksplorasi Konsep). Jabarkan sintaks yang relevan (Aktivitas Guru & Siswa, Alokasi Waktu).
 - PENGALAMAN BELAJAR 2: MENGAPLIKASIKAN (Aksi Nyata). Jabarkan sintaks relevan. Di bagian ini WAJIB TERDAPAT PENGELOMPOKAN/PENDEKATAN BERIKUT:
 ${instruksiDiferensiasiInti}
@@ -1686,6 +1711,132 @@ C. Soal Evaluasi (Pilihan Ganda) (WAJIB berikan 10 Soal Pilihan Ganda A-D yang b
 **LAMPIRAN 2: LKPD (Lembar Kerja Peserta Didik)**
 (Tuliskan struktur LKPD detail untuk setidaknya salah satu pertemuan utama: Judul LKPD, Identitas, Tujuan, Petunjuk, Alat/Bahan, Langkah Kegiatan).
 ${instruksiDiferensiasiLKPD}`;
+
+            return { meta, prompt };
+        }
+
+        // Fungsi untuk Mode Jembatan Browser Asli (ChatGPT.com & Claude.ai)
+        window.openBrowserBridgeModal = function() {
+            const built = buildMetaAndPromptFromForm();
+            if (!built) return;
+            currentGeneratedMeta = built.meta;
+            document.getElementById('bridge-prompt-box').value = built.prompt;
+            document.getElementById('modal-browser-ai').classList.remove('hidden');
+        };
+
+        window.closeBrowserBridgeModal = function() {
+            document.getElementById('modal-browser-ai').classList.add('hidden');
+        };
+
+        window.copyGeneratedPrompt = function() {
+            const promptText = document.getElementById('bridge-prompt-box').value;
+            if (!promptText) return;
+            navigator.clipboard.writeText(promptText).then(() => {
+                showToast("Prompt RPP berhasil disalin ke Clipboard!", "success");
+            });
+        };
+
+        window.launchExternalAI = function(provider) {
+            const promptText = document.getElementById('bridge-prompt-box').value;
+            if (!promptText) return;
+            navigator.clipboard.writeText(promptText).then(() => {
+                showToast("Prompt disalin! Silakan tekan Ctrl+V (Paste) di tab AI yang terbuka.", "success");
+            }).catch(() => {});
+
+            if (provider === 'claude') {
+                window.open('https://claude.ai/new', '_blank');
+            } else {
+                window.open('https://chatgpt.com/', '_blank');
+            }
+        };
+
+        window.pasteFromClipboardToBridge = async function() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    document.getElementById('bridge-result-input').value = text;
+                    showToast("Teks berhasil ditempel dari Clipboard!", "success");
+                } else {
+                    showToast("Clipboard kosong. Silakan tekan Ctrl+V secara manual di kotak.", "info");
+                }
+            } catch (e) {
+                showToast("Silakan klik di dalam kotak lalu tekan Ctrl+V pada keyboard.", "info");
+                document.getElementById('bridge-result-input').focus();
+            }
+        };
+
+        window.applyBrowserBridgeResult = function() {
+            const pastedText = document.getElementById('bridge-result-input').value.trim();
+            if (!pastedText || pastedText.length < 30) {
+                showToast("Silakan tempel hasil RPP dari ChatGPT / Claude terlebih dahulu.", "error");
+                return;
+            }
+
+            currentGeneratedRPP = pastedText;
+            document.getElementById('generator-empty').classList.add('hidden');
+            document.getElementById('generator-loader').classList.add('hidden');
+            document.getElementById('generator-result').innerHTML = marked.parse(currentGeneratedRPP);
+            document.getElementById('generator-result').classList.remove('hidden');
+            document.getElementById('result-actions').classList.remove('hidden');
+            document.getElementById('result-actions').classList.add('flex');
+
+            closeBrowserBridgeModal();
+            showToast("Hasil RPP berhasil diterapkan! Siap diunduh ke Word A4, Cetak, atau Simpan Arsip.", "success");
+        };
+
+        // Helper untuk memanggil AI Claude & ChatGPT Tanpa API Key menggunakan Puter.js Cloud SDK
+        async function generateWithoutApiKey(prompt, modelChoice) {
+            // 1. Gunakan Puter.js v2 Cloud AI (Resmi mendukung gpt-4o-mini & claude-3-5-sonnet tanpa API Key)
+            if (window.puter && window.puter.ai && typeof window.puter.ai.chat === 'function') {
+                const targetModel = modelChoice === 'claude' ? 'claude-3-5-sonnet' : 'gpt-4o-mini';
+                const resp = await window.puter.ai.chat(prompt, { model: targetModel });
+
+                if (typeof resp === 'string' && resp.trim().length > 0) {
+                    return resp;
+                }
+                if (resp?.message?.content) {
+                    if (typeof resp.message.content === 'string') {
+                        return resp.message.content;
+                    }
+                    if (Array.isArray(resp.message.content) && resp.message.content[0]?.text) {
+                        return resp.message.content[0].text;
+                    }
+                }
+                if (resp && typeof resp.toString === 'function') {
+                    const str = resp.toString();
+                    if (str && str !== '[object Object]') return str;
+                }
+            }
+
+            throw new Error("Koneksi Cloud AI membutuhkan otorisasi sesi browser. Membuka Mode Browser Langsung (ChatGPT.com / Claude.ai)...");
+        }
+
+        document.getElementById('generator-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const built = buildMetaAndPromptFromForm();
+            if (!built) return;
+
+            currentGeneratedMeta = built.meta;
+            const prompt = built.prompt;
+
+            const selectedAI = document.getElementById('gen-ai-model').value;
+            let apiKey = "";
+
+            // Khusus model Gemini tetap wajib memakai API Key dari Pengaturan (Tidak dirubah)
+            if (selectedAI === 'gemini') {
+                apiKey = await getGeminiKey();
+                if (!apiKey) { showToast("API Key belum diatur.", "error"); navigate('pengaturan'); return; }
+            }
+
+            document.getElementById('generator-empty').classList.add('hidden');
+            document.getElementById('generator-result').classList.add('hidden');
+            document.getElementById('result-actions').classList.add('hidden');
+            document.getElementById('generator-loader').classList.remove('hidden');
+            
+            const btn = document.getElementById('btn-generate');
+            const originalBtnHtml = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Merancang...';
 
             try {
                 if (selectedAI === 'gemini') {
@@ -1710,7 +1861,7 @@ ${instruksiDiferensiasiLKPD}`;
                         showToast("RPP berhasil di-generate!", "success");
                     }
                 } else {
-                    // Model Claude & ChatGPT (Tanpa API Key)
+                    // Model Claude & ChatGPT (Tanpa API Key via Puter.js Cloud AI)
                     currentGeneratedRPP = await generateWithoutApiKey(prompt, selectedAI);
                     document.getElementById('generator-result').innerHTML = marked.parse(currentGeneratedRPP);
                     document.getElementById('generator-loader').classList.add('hidden');
@@ -1723,7 +1874,15 @@ ${instruksiDiferensiasiLKPD}`;
                 console.error("AI Error:", error);
                 document.getElementById('generator-loader').classList.add('hidden');
                 document.getElementById('generator-empty').classList.remove('hidden');
-                showToast("Error: " + error.message, "error");
+
+                // Jika mode otomatis ChatGPT/Claude terblokir popup/sesi browser, langsung buka Mode Jembatan Browser Asli
+                if (selectedAI === 'chatgpt' || selectedAI === 'claude') {
+                    document.getElementById('bridge-prompt-box').value = prompt;
+                    document.getElementById('modal-browser-ai').classList.remove('hidden');
+                    showToast("Silakan gunakan Mode Browser Asli (ChatGPT.com / Claude.ai) yang telah disiapkan.", "info");
+                } else {
+                    showToast("Error: " + error.message, "error");
+                }
             } finally {
                 btn.disabled = false; btn.innerHTML = originalBtnHtml;
             }
