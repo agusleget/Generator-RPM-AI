@@ -1160,8 +1160,8 @@ C. Soal Evaluasi (Pilihan Ganda) (WAJIB berikan 10 Soal Pilihan Ganda A-D yang b
 ${instruksiDiferensiasiLKPD}`;
 
             try {
-                // Update to the latest general available model: gemini-3.6-flash
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
+                // Update to the latest general available model: gemini-3.8-flash
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
